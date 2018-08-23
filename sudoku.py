@@ -194,7 +194,7 @@ class IHM(Frame):
 # Interface
 top = Tk()
 top.title('Sudoku solver')
-top.iconbitmap("logo.ico")
+top.iconbitmap("images/logo.ico")
 top.resizable(width = False, height = False)
 
 sudo = IHM(top, 9, 9)

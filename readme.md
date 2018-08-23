@@ -3,6 +3,8 @@
 
 This Python program resolves any Sudoku grid. The GUI is made with Tkinter.
 
+![](/images/sudoku_solved.png)
+
 ## Prerequisites
 
 This application requires Python 3.6. Check your python version using:
