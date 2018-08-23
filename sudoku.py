@@ -1,61 +1,21 @@
+from tkinter import *
 from copy import deepcopy
 import time as t
-from tkinter import *
-'''
-S = [[2, 0, 0, 0, 0, 0, 0, 0, 0], # test
-     [0, 0, 7, 0, 4, 0, 0, 0, 0],
-     [0, 0, 5, 0, 0, 0, 0, 8, 0],
-     [1, 0, 0, 0, 3, 0, 0, 2, 0],
-     [3, 8, 0, 0, 9, 0, 4, 0, 0],
-     [0, 0, 0, 0, 0, 2, 0, 0, 7],
-     [0, 0, 0, 0, 1, 0, 9, 0, 0],
-     [0, 0, 0, 0, 8, 7, 0, 0, 3],
-     [4, 0, 3, 0, 0, 9, 5, 0, 0]]
 
-S = [[1, 0, 0, 0, 0, 7, 0, 9, 0], # hardest
-     [0, 3, 0, 0, 2, 0, 0, 0, 8],
-     [0, 0, 9, 6, 0, 0, 5, 0, 0],
-     [0, 0, 5, 3, 0, 0, 9, 0, 0],
-     [0, 1, 0, 0, 8, 0, 0, 0, 2],
-     [6, 0, 0, 0, 0, 4, 0, 0, 0],
-     [3, 0, 0, 0, 0, 0, 0, 1, 0],
-     [0, 4, 0, 0, 0, 0, 0, 0, 7],
-     [0, 0, 7, 0, 0, 0, 3, 0, 0]]
 
-S = [[0, 0, 0, 8, 0, 1, 0, 0, 0], # 17 hints
-     [0, 0, 0, 0, 0, 0, 4, 3, 0],
-     [5, 0, 0, 0, 0, 0, 0, 0, 0],
-     [0, 0, 0, 0, 7, 0, 8, 0, 0],
-     [0, 0, 0, 0, 0, 0, 1, 0, 0],
-     [0, 2, 0, 0, 3, 0, 0, 0, 0],
-     [6, 0, 0, 0, 0, 0, 0, 7, 5],
-     [0, 0, 3, 4, 0, 0, 0, 0, 0],
-     [0, 0, 0, 2, 0, 0, 6, 0, 0]]
-'''
-
-def fillPossib(S):
-    for i in range(9):
-        for j in range(9):
-            if S[i][j] == 0:
-                S[i][j] = []
-                for k in range(1,10):
-                    if testLigne(S,i,k) \
-                    and testColonne(S,j,k) \
-                    and testCarre(S,i,j,k):
-                        S[i][j].append(k)
-
-def testLigne(S,i,k):
+# Functions to test if a number is in a line, column or square
+def testLine(S,i,k):
     if k in S[i]:
         return False
     return True
 
-def testColonne(S,j,k):
+def testColumn(S,j,k):
     for i in range(9):
         if S[i][j] == k:
             return False
     return True
 
-def testCarre(S,i,j,k):
+def testSquare(S,i,j,k):
     if i >= 0 and i <= 2:
         if j >= 0 and j <= 2:
             if k in S[0][0:3] or k in S[1][0:3] or k in S[2][0:3]:
@@ -91,6 +51,19 @@ def testCarre(S,i,j,k):
 
     return True
 
+def fillPossib(S):
+    for i in range(9):
+        for j in range(9):
+            if S[i][j] == 0:
+                # Fill each empty square with possibilities
+                S[i][j] = []
+                for k in range(1,10):
+                    if testLine(S,i,k) \
+                    and testColumn(S,j,k) \
+                    and testSquare(S,i,j,k):
+                        S[i][j].append(k)
+
+# Functions to find the next and previous empty square
 def next(S,i,j):
     j += 1
     if j > 8: j = 0; i += 1
@@ -109,6 +82,7 @@ def prev(S,i,j):
         if j < 0: j = 8; i -= 1
     return i,j
 
+# Backtrack function to test combinations of possibilities until finding the good one
 def backTrack(S,SPossib):
     i,j = next(SPossib,0,-1)
     while i < 9:
@@ -121,31 +95,16 @@ def backTrack(S,SPossib):
             i,j = prev(SPossib,i,j)
         else:
             k = SPossib[i][j][ind]
-            if testLigne(S,i,k) \
-            and testColonne(S,j,k) \
-            and testCarre(S,i,j,k):
+            if testLine(S,i,k) \
+            and testColumn(S,j,k) \
+            and testSquare(S,i,j,k):
                 S[i][j] = k
                 i,j = next(SPossib,i,j)
             else:
                 S[i][j] = k
 
-def printS(S):
-    for i in range(9):
-        if i == 3 or i == 6:
-            print("- - - - - - - - - -")
-        for j in range(9):
-            if j == 3 or j == 6:
-                print("|", end="")
-            print(S[i][j], end=" ")
-        print("\n")
-
-def clear(sudo):
-    for i in range(9):
-        for j in range(9):
-            sudo.data[i][j].delete(0)
-            sudo.data[i][j].configure(fg = 'black')
-
 def resolve(sudo):
+    # Convert entries in a 2D list
     S = []
     for i in range(9):
         s = []
@@ -156,16 +115,26 @@ def resolve(sudo):
                 s.append(0)
         S.append(s)
 
+    # Solve the sudoku
     SPossib = deepcopy(S)
     fillPossib(SPossib)
     backTrack(S,SPossib)
 
+    # Convert back the 2D list to display it on the interface
     for i in range(9):
         for j in range(9):
             if not sudo.data[i][j].get():
                 sudo.data[i][j].delete(0)
+                # Write calculated digits in green
                 sudo.data[i][j].configure(fg = '#0B0')
                 sudo.data[i][j].insert(0, S[i][j])
+
+# Function to clear the grid interface
+def clear(sudo):
+    for i in range(9):
+        for j in range(9):
+            sudo.data[i][j].delete(0)
+            sudo.data[i][j].configure(fg = 'black')
 
 class IHM(Frame): 
     def __init__(self, fenetre, height, width): 
@@ -174,6 +143,7 @@ class IHM(Frame):
         self.numberColumns = width 
         self.pack(fill=BOTH)
 
+        # Create the 9 main squares
         square1 = Frame(self, bd = 5, bg = 'black')
         square1.grid(row = 0, column = 0)
         square2 = Frame(self, bd = 5, bg = 'black')
@@ -194,38 +164,23 @@ class IHM(Frame):
         square9.grid(row = 2, column = 2)
 
         self.data = list()
-        for i in range(0,3):
+        for i in range(self.numberLines):
             line = list()
             for j in range(self.numberColumns):
-                if j//3 == 0:
+                # Put each sub-square in the correct square
+                if i//3 == 0 and j//3 == 0:
                     square = square1
-                elif j//3 == 1:
+                elif i//3 == 0 and j//3 == 1:
                     square = square2
-                else:
+                elif i//3 == 0:
                     square = square3
-                cell = Entry(square, width = 2, justify = CENTER, font = 'arial 50')
-                line.append(cell)
-                cell.grid(row = i, column = j)
-            self.data.append(line)
-
-        for i in range(3,6):
-            line = list()
-            for j in range(self.numberColumns):
-                if j//3 == 0:
+                elif i//3 == 1 and j//3 == 0:
                     square = square4
-                elif j//3 == 1:
+                elif i//3 == 1 and j//3 == 1:
                     square = square5
-                else:
+                elif i//3 == 1:
                     square = square6
-                cell = Entry(square, width = 2, justify = CENTER, font = 'arial 50')
-                line.append(cell)
-                cell.grid(row = i, column = j)
-            self.data.append(line)
-
-        for i in range(6,9):
-            line = list()
-            for j in range(self.numberColumns):
-                if j//3 == 0:
+                elif j//3 == 0:
                     square = square7
                 elif j//3 == 1:
                     square = square8
@@ -236,7 +191,7 @@ class IHM(Frame):
                 cell.grid(row = i, column = j)
             self.data.append(line)
 
-# GUI
+# Interface
 top = Tk()
 top.title('Sudoku solver')
 top.iconbitmap("logo.ico")
