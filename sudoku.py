@@ -103,7 +103,7 @@ def backTrack(S,SPossib):
             else:
                 S[i][j] = k
 
-def resolve(sudo):
+def resolve(sudo, text):
     # Convert entries in a 2D list
     S = []
     for i in range(9):
@@ -116,9 +116,11 @@ def resolve(sudo):
         S.append(s)
 
     # Solve the sudoku
+    time1 = t.process_time()
     SPossib = deepcopy(S)
     fillPossib(SPossib)
     backTrack(S,SPossib)
+    time2 = t.process_time()
 
     # Convert back the 2D list to display it on the interface
     for i in range(9):
@@ -129,12 +131,17 @@ def resolve(sudo):
                 sudo.data[i][j].configure(fg = '#0B0')
                 sudo.data[i][j].insert(0, S[i][j])
 
+    # Display the time taken to solve the grid
+    dispText = "Resolved in " + str(round(time2-time1,2)) + " sec"
+    text.set(dispText)
+
 # Function to clear the grid interface
-def clear(sudo):
+def clear(sudo, text):
     for i in range(9):
         for j in range(9):
             sudo.data[i][j].delete(0)
             sudo.data[i][j].configure(fg = 'black')
+    text.set("")
 
 class IHM(Frame): 
     def __init__(self, fenetre, height, width): 
@@ -198,9 +205,12 @@ top.iconbitmap("images/logo.ico")
 top.resizable(width = False, height = False)
 
 sudo = IHM(top, 9, 9)
-clearButton = Button(top, text = 'Clear', font = 'arial 20 bold', command = lambda: clear(sudo))
+clearButton = Button(top, text = 'Clear', font = 'arial 20 bold', command = lambda: clear(sudo, text))
 clearButton.pack(side = RIGHT)
-solve = Button(top, text = 'Solve', font = 'arial 20 bold', command = lambda: resolve(sudo))
+solve = Button(top, text = 'Solve', font = 'arial 20 bold', command = lambda: resolve(sudo, text))
 solve.pack(side = RIGHT)
+text = StringVar()
+label = Label(top, textvariable = text, font = 'arial 12')
+label.pack(side = LEFT)
 
 top.mainloop()
