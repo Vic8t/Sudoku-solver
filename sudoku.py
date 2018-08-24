@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 from copy import deepcopy
 import time as t
 
@@ -109,31 +110,33 @@ def resolve(sudo, text):
     for i in range(9):
         s = []
         for j in range(9):
+            sudo.data[i][j].configure(bg = 'white')
             if sudo.data[i][j].get():
                 s.append(int(sudo.data[i][j].get()))
             else:
                 s.append(0)
         S.append(s)
 
-    # Solve the sudoku
-    time1 = t.process_time()
-    SPossib = deepcopy(S)
-    fillPossib(SPossib)
-    backTrack(S,SPossib)
-    time2 = t.process_time()
+    if possibleGrid(S,sudo):
+        # Solve the sudoku
+        time1 = t.process_time()
+        SPossib = deepcopy(S)
+        fillPossib(SPossib)
+        backTrack(S,SPossib)
+        time2 = t.process_time()
 
-    # Convert back the 2D list to display it on the interface
-    for i in range(9):
-        for j in range(9):
-            if not sudo.data[i][j].get():
-                sudo.data[i][j].delete(0)
-                # Write calculated digits in green
-                sudo.data[i][j].configure(fg = '#0B0')
-                sudo.data[i][j].insert(0, S[i][j])
+        # Convert back the 2D list to display it on the interface
+        for i in range(9):
+            for j in range(9):
+                if not sudo.data[i][j].get():
+                    sudo.data[i][j].delete(0)
+                    # Write calculated digits in green
+                    sudo.data[i][j].configure(fg = '#0B0')
+                    sudo.data[i][j].insert(0, S[i][j])
 
-    # Display the time taken to solve the grid
-    dispText = "Resolved in " + str(round(time2-time1,2)) + " sec"
-    text.set(dispText)
+        # Display the time taken to solve the grid
+        dispText = "Resolved in " + str(round(time2-time1,2)) + " sec"
+        text.set(dispText)
 
 # Function to clear the grid interface
 def clear(sudo, text):
@@ -141,7 +144,24 @@ def clear(sudo, text):
         for j in range(9):
             sudo.data[i][j].delete(0)
             sudo.data[i][j].configure(fg = 'black')
+            sudo.data[i][j].configure(bg = 'white')
     text.set("")
+
+def possibleGrid(S,sudo):
+    result = True
+    for i in range(9):
+        for j in range(9):
+            k = S[i][j]
+            S[i][j] = 0
+            if k and (not testLine(S,i,k) \
+                or not testColumn(S,j,k) \
+                or not testSquare(S,i,j,k)):
+                if result:
+                    messagebox.showwarning("Impossible grid", "Your grid has no solution.")
+                sudo.data[i][j].configure(bg = 'red')
+                result = False
+            S[i][j] = k
+    return result
 
 class IHM(Frame): 
     def __init__(self, fenetre, height, width): 
