@@ -105,19 +105,25 @@ def backTrack(S,SPossib):
                 S[i][j] = k
 
 def resolve(sudo, text):
+    correctValues = True
     # Convert entries in a 2D list
     S = []
     for i in range(9):
         s = []
         for j in range(9):
             sudo.data[i][j].configure(bg = 'white')
-            if sudo.data[i][j].get():
+            if sudo.data[i][j].get() in ['{}'.format(i) for i in range(1,10)]:
                 s.append(int(sudo.data[i][j].get()))
-            else:
+            elif not sudo.data[i][j].get():
                 s.append(0)
+            else:
+                if correctValues:
+                    messagebox.showwarning("Impossible value", "Each input must be a digit.")
+                    correctValues = False
+                sudo.data[i][j].configure(bg = 'red')
         S.append(s)
 
-    if possibleGrid(S,sudo):
+    if correctValues and possibleGrid(S,sudo):
         # Solve the sudoku
         time1 = t.process_time()
         SPossib = deepcopy(S)
@@ -142,13 +148,13 @@ def resolve(sudo, text):
 def clear(sudo, text):
     for i in range(9):
         for j in range(9):
-            sudo.data[i][j].delete(0)
+            sudo.data[i][j].delete(0,'end')
             sudo.data[i][j].configure(fg = 'black')
             sudo.data[i][j].configure(bg = 'white')
     text.set("")
 
 def possibleGrid(S,sudo):
-    result = True
+    possible = True
     for i in range(9):
         for j in range(9):
             k = S[i][j]
@@ -156,12 +162,12 @@ def possibleGrid(S,sudo):
             if k and (not testLine(S,i,k) \
                 or not testColumn(S,j,k) \
                 or not testSquare(S,i,j,k)):
-                if result:
+                if possible:
                     messagebox.showwarning("Impossible grid", "Your grid has no solution.")
+                    possible = False
                 sudo.data[i][j].configure(bg = 'red')
-                result = False
             S[i][j] = k
-    return result
+    return possible
 
 class IHM(Frame): 
     def __init__(self, fenetre, height, width): 
